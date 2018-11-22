@@ -7,7 +7,3 @@ import (
 type Simplifier interface {
 	SimplifyHTML(url *url.URL) (string, error)
 }
-
-var (
-	DefaultSimplifier Simplifier = DefaultMercurySimplifier
-)

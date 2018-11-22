@@ -4,7 +4,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func GetHTTPRouter() *mux.Router {
+func InitAndGetHTTPRouter() *mux.Router {
 	router := mux.NewRouter()
 
 	router.HandleFunc("/simplify", simplifyPost).Methods("POST")

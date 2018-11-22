@@ -6,24 +6,34 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"sync"
+
+	"github.com/spf13/viper"
 
 	"github.com/sirupsen/logrus"
 
 	"github.com/pkg/errors"
 )
 
-type MercurySimplifier struct {
+type mercurySimplifier struct {
 	parserURL string
 	APIKey    string
 }
 
-var (
-	DefaultMercurySimplifier = &MercurySimplifier{
-		parserURL: "https://mercury.postlight.com/parser?url=%s",
-	}
-)
+var mercuryInstance *mercurySimplifier
+var once sync.Once
 
-func (mc *MercurySimplifier) SimplifyHTML(url *url.URL) (string, error) {
+func GetMercury() Simplifier {
+	once.Do(func() {
+		mercuryInstance = &mercurySimplifier{
+			parserURL: "https://mercury.postlight.com/parser?url=%s",
+			APIKey:    viper.GetString("simplifier.mercury.api-key"),
+		}
+	})
+	return mercuryInstance
+}
+
+func (mc *mercurySimplifier) SimplifyHTML(url *url.URL) (string, error) {
 	mercuryRes, err := mc.requestMercury(url)
 	if err != nil {
 		return "", err
@@ -31,7 +41,7 @@ func (mc *MercurySimplifier) SimplifyHTML(url *url.URL) (string, error) {
 	return mercuryRes.Content, nil
 }
 
-func (mc *MercurySimplifier) requestMercury(url *url.URL) (*mercuryResponse, error) {
+func (mc *mercurySimplifier) requestMercury(url *url.URL) (*mercuryResponse, error) {
 	req, err := mc.newMercuryRequest(url)
 	if err != nil {
 		return nil, err
@@ -49,7 +59,7 @@ func (mc *MercurySimplifier) requestMercury(url *url.URL) (*mercuryResponse, err
 	return mercuryRes, nil
 }
 
-func (mc *MercurySimplifier) newMercuryRequest(url *url.URL) (*http.Request, error) {
+func (mc *mercurySimplifier) newMercuryRequest(url *url.URL) (*http.Request, error) {
 	mercuryURL := fmt.Sprintf(mc.parserURL, url.String())
 	req, err := http.NewRequest("GET", mercuryURL, nil)
 	if err != nil {
@@ -68,7 +78,7 @@ type mercuryResponse struct {
 	WordCount    int    `json:"word_count"`
 }
 
-func (mc *MercurySimplifier) readMercuryResponse(res *http.Response) (*mercuryResponse, error) {
+func (mc *mercurySimplifier) readMercuryResponse(res *http.Response) (*mercuryResponse, error) {
 	body, err := ioutil.ReadAll(res.Body)
 	defer res.Body.Close()
 	if err != nil {

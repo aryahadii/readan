@@ -5,6 +5,7 @@ import (
 	"net/url"
 
 	"github.com/aryahadii/readan/simplifier"
+
 	"github.com/sirupsen/logrus"
 )
 
@@ -23,7 +24,7 @@ func simplifyGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	simplifiedDocument, err := simplifier.DefaultSimplifier.SimplifyHTML(websiteURL)
+	simplifiedDocument, err := simplifier.GetMercury().SimplifyHTML(websiteURL)
 	if err != nil {
 		logrus.WithError(err).Errorln("cannot simplify")
 		w.WriteHeader(http.StatusInternalServerError)

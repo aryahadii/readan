@@ -1,0 +1,6 @@
+server:
+  addr: ':8000'
+
+simplifier:
+  mercury:
+    api-key: 'API_KEY'
